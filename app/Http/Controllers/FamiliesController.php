@@ -3,10 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Product;
+use App\Models\Family;
+use App\Models\User;
 use Datatables;
 
-class ProductController extends Controller
+class FamiliesController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -16,17 +17,30 @@ class ProductController extends Controller
     public function index()
     {
         if (request()->ajax()) {
-            //return datatables()->of(Product::select('*'))
-            return datatables()->of(Product::select('id', 'name', 'quantity', 'created_at'))
+            return datatables()->of(Family::select('id', 'name', 'gender', 'created_at'))
                 ->editColumn('created_at', function ($request) {
                     return $request->created_at->format('d-m-Y H:i'); // format date time
                 })
-                ->addColumn('action', 'products.product-action')
+                ->addColumn('action', 'families.families-action')
                 ->rawColumns(['action'])
                 ->addIndexColumn()
                 ->make(true);
         }
-        return view('products.products');
+
+        $families = Family::with([
+            'children' => function ($query) {
+                $query->with('children');
+            }
+        ])->where('parent_id', null)->get();
+
+        return view('families.families', compact('families'));
+    }
+
+    public function family()
+    {
+        $families = Family::all();
+
+        return Response()->json($families);
     }
 
     /**
@@ -41,16 +55,16 @@ class ProductController extends Controller
 
         $request->validate([
             'name' => 'required',
-            'quantity' => 'required|integer|gt:0'
         ]);
 
-        $product = Product::updateOrCreate(
+        $product = Family::updateOrCreate(
             [
                 'id' => $productId
             ],
             [
                 'name' => $request->name,
-                'quantity' => $request->quantity
+                'parent_id' => $request->parent_id,
+                'gender' => $request->gender
             ]
         );
 
@@ -66,7 +80,7 @@ class ProductController extends Controller
     public function edit(Request $request)
     {
         $where = array('id' => $request->id);
-        $product  = Product::where($where)->first();
+        $product  = Family::where($where)->first();
 
         return Response()->json($product);
     }
@@ -78,7 +92,7 @@ class ProductController extends Controller
      */
     public function destroy(Request $request)
     {
-        $product = Product::where('id', $request->id)->delete();
+        $product = Family::where('id', $request->id)->delete();
 
         return Response()->json($product);
     }

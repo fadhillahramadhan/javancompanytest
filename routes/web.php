@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\FamiliesController;
+
 
 
 /*
@@ -15,15 +17,11 @@ use App\Http\Controllers\ProductController;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
 
-Route::get('products', [ProductController::class, 'index'])->middleware('auth');
-Route::post('store-product', [ProductController::class, 'store'])->middleware('auth');
-Route::post('edit-product', [ProductController::class, 'edit'])->middleware('auth');
-Route::post('delete-product', [ProductController::class, 'destroy'])->middleware('auth');
 
-Auth::routes();
+Route::get('/', [FamiliesController::class, 'index'])->name('families');
+Route::get('/families', [FamiliesController::class, 'index'])->name('get-families');
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::post('store-family', [FamiliesController::class, 'store']);
+Route::post('edit-family', [FamiliesController::class, 'edit']);
+Route::post('delete-family', [FamiliesController::class, 'destroy']);
